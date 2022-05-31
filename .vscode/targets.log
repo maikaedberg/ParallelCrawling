@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Tue May 31 13:34:12 2022
+# Make data base, printed on Tue May 31 20:03:39 2022
 
 # Variables
 
@@ -24,7 +24,6 @@ OPAM_SWITCH_PREFIX = /Users/maikaedberg/.opam/default
 OCAML_TOPLEVEL_PATH = /Users/maikaedberg/.opam/default/lib/toplevel
 # environment
 VSCODE_LOG_NATIVE = false
- 
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
@@ -44,11 +43,11 @@ CFLAGS = -pthread -std=c++17 -Wall
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
 # makefile (from `Makefile', line 4)
-SOURCES = main.cpp SetList.cpp
+SOURCES = main.cpp SetList.cpp SafeUnboundedQueue.cpp
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/_p/8z3vzfgd7jj7v8n41847t4640000gn/T/vscode-ipc-2e155a40-f36a-4a39-b803-5be241f9bea4.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/_p/8z3vzfgd7jj7v8n41847t4640000gn/T/vscode-ipc-830616d4-1450-4153-a09c-b2df5fa73a4c.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -160,7 +159,7 @@ OBJECTS = main.o
 # environment
 CONDA_PREFIX = /Users/maikaedberg/anaconda3
 # environment
-VSCODE_PID = 94919
+VSCODE_PID = 3294
 # environment
 _CE_CONDA = 
 # environment
@@ -174,9 +173,9 @@ LANG = C
 
 # Directories
 
-# . (device 16777222, inode 37472630): 7 files, no impossibilities.
+# . (device 16777222, inode 37472630): 10 files, no impossibilities.
 
-# 7 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -202,7 +201,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-31 13:34:07
+#  Last modified 2022-05-31 20:03:34
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -258,6 +257,6 @@ main.o: main.cpp
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Tue May 31 13:34:12 2022
+# Finished Make data base on Tue May 31 20:03:39 2022
 
  

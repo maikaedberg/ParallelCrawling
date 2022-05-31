@@ -67,6 +67,10 @@
         "unordered_map": "cpp",
         "utility": "cpp",
         "vector": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "condition_variable": "cpp",
+        "future": "cpp",
+        "numeric": "cpp",
+        "thread": "cpp"
     }
 }

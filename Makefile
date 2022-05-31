@@ -1,7 +1,7 @@
 CXX = g++
 CFLAGS = -pthread -std=c++17 -Wall
 
-SOURCES = main.cpp SetList.cpp
+SOURCES = main.cpp SetList.cpp SafeUnboundedQueue.cpp
 OBJECTS = main.o
 
 main: $(OBJECTS)
