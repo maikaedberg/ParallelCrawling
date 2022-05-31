@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <queue>
 #include <algorithm>
 
 #include <stdio.h>
@@ -14,7 +15,6 @@
 #include "SetList.cpp"
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
-
 
     size_t written = 0;
     bool towrite = false;
@@ -49,34 +49,30 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     return written;
 }
 
-std::string linkFile(std::string file){
-    file.erase(std::remove(file.begin(), file.end(), '/'), file.end());
-    return file;
-}
 
-
-
-void crawl_website(const char* link){
-
+void crawl_website(std::string link){
     CURL *curl_handle;
     FILE *pagefile;
     curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
  
-    curl_easy_setopt(curl_handle, CURLOPT_URL, link);
+    curl_easy_setopt(curl_handle, CURLOPT_URL, link.c_str());
     //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 
-    std::string file = (std::string) link + ".links";
-    file = linkFile(file);
+    std::string file = link + ".links";
+    file.erase(std::remove(file.begin(), file.end(), '/'), file.end());
 
-    static const char *pagefilename = file.c_str();
-
+    const char *pagefilename = file.c_str();
     pagefile = fopen(pagefilename, "wb");
     if (pagefile) {
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
         curl_easy_perform(curl_handle);
         fclose(pagefile);
+    }
+    else{
+        //std::cout << "something went wrong with creating " << pagefilename << '\n';
+        exit(1);
     }
  
   curl_easy_cleanup(curl_handle);
@@ -87,22 +83,42 @@ void crawl_website(const char* link){
 
 int main(){
     SetList LinkDirectory = SetList();
-    const char* link = "https://www.wikipedia.org/";
-    crawl_website(link);
+    std::queue<std::string> links;
+    std::string firstLink = "https://example.com/";
+    links.push(firstLink);
+    LinkDirectory.add(firstLink);
 
-    std::string pagefile = link;
-    pagefile = linkFile(pagefile);
-    pagefile += ".links";
+    
+    while (! links.empty()){
+        std::string link = links.front();
 
-    std::string line;
+        crawl_website(link);
 
-    std::ifstream input_file(pagefile);
-    if (input_file.is_open()) {
-        while (getline(input_file, line)){
-            if (line.substr(0,8) == "https://"){
-                LinkDirectory->add(line);
+        std::string file = link;
+        file.erase(std::remove(file.begin(), file.end(), '/'), file.end());
+        file += ".links";
+
+        std::string line;
+        std::ifstream input_file(file);
+
+        if (input_file.is_open()) {
+            while (getline(input_file, line)){
+                if (line.substr(0,8) == "https://"){
+                    bool added = LinkDirectory.add(line);
+                    if (added){
+                        links.push( line );
+                    }
+                }
             }
+            remove(file.c_str());
         }
+        else{
+            std::cout << "something went wrong with finding " << file << '\n';
+            exit(1);
+        }
+        links.pop();
     }
+
+    LinkDirectory.print();
 
 }
