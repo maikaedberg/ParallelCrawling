@@ -7,8 +7,10 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
  
+make: *** No rule to make target `all'.  Stop.
 
-# Make data base, printed on Mon May 30 20:59:31 2022
+
+# Make data base, printed on Tue May 31 13:34:12 2022
 
 # Variables
 
@@ -22,6 +24,7 @@ OPAM_SWITCH_PREFIX = /Users/maikaedberg/.opam/default
 OCAML_TOPLEVEL_PATH = /Users/maikaedberg/.opam/default/lib/toplevel
 # environment
 VSCODE_LOG_NATIVE = false
+ 
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
@@ -41,11 +44,11 @@ CFLAGS = -pthread -std=c++17 -Wall
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
 # makefile (from `Makefile', line 4)
-SOURCES = main.cpp 
+SOURCES = main.cpp SetList.cpp
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/_p/8z3vzfgd7jj7v8n41847t4640000gn/T/vscode-ipc-4c7bca5d-250b-410d-bfda-9e0f8751d7ea.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/_p/8z3vzfgd7jj7v8n41847t4640000gn/T/vscode-ipc-2e155a40-f36a-4a39-b803-5be241f9bea4.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -79,7 +82,7 @@ VSCODE_CODE_CACHE_PATH = /Users/maikaedberg/Library/Application Support/Code/Cac
 # environment
 LOGNAME = maikaedberg
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 CONDA_PROMPT_MODIFIER = (base) 
 # environment
@@ -157,7 +160,7 @@ OBJECTS = main.o
 # environment
 CONDA_PREFIX = /Users/maikaedberg/anaconda3
 # environment
-VSCODE_PID = 89348
+VSCODE_PID = 94919
 # environment
 _CE_CONDA = 
 # environment
@@ -171,9 +174,9 @@ LANG = C
 
 # Directories
 
-# . (device 16777222, inode 37472630): 6 files, no impossibilities.
+# . (device 16777222, inode 37472630): 7 files, no impossibilities.
 
-# 6 files, no impossibilities in 1 directories.
+# 7 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -199,7 +202,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-30 20:59:20
+#  Last modified 2022-05-31 13:34:07
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -255,8 +258,6 @@ main.o: main.cpp
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Mon May 30 20:59:31 2022
+# Finished Make data base on Tue May 31 13:34:12 2022
 
  
-make: *** No rule to make target `all'.  Stop.
-
