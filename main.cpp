@@ -115,7 +115,7 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
 int main(){
     SetList LinkDirectory;
     SafeUnboundedQueue<std::string> links;
-    std::string firstLink = "https://www.wikipedia.org/";
+    std::string firstLink = "https://www.nytimes.com/";
     links.push(firstLink);
     LinkDirectory.add(firstLink);
 
