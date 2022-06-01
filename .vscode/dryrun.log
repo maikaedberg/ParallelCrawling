@@ -1,4 +1,4 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory `/Users/maikaedberg/Documents/GitHub/ParallelCrawling'
 g++ -c -pthread -std=c++17 -Wall -o main.o main.cpp 
 g++ -pthread -std=c++17 -Wall -o main main.o -lcurl

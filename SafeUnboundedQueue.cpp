@@ -10,14 +10,12 @@
 #include <thread>
 #include <queue>
 
-//-----------------------------------------------------------------------------
 
 template <class E> 
 class SafeUnboundedQueue {
         std::queue<E> elements;
         std::mutex lock;
         std::condition_variable not_empty;
-        bool stop = false;
     public: 
         SafeUnboundedQueue<E>(){}
         void push(const E& element);
@@ -37,8 +35,8 @@ void SafeUnboundedQueue<E>::push(const E& element) {
 template <class E> 
 E SafeUnboundedQueue<E>::pop() {
     std::unique_lock<std::mutex> lk(lock);
-    if (elements.empty() and !stop)
-        return E();
+    while (elements.empty())
+        not_empty.wait(lk);
     E element = elements.front();
     elements.pop();
     return element;
