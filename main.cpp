@@ -82,17 +82,16 @@ std::string readLink(std::string firstLink, std::string link){
     return firstLink + link;
 }
 
-void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
+void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size){
 
-    while ( ! links.work_ended() && LinkDirectory.size() < 1000 ){ // there is still some links to treat
-    
+    while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
+        //std::cout << LinkDirectory.size() << " " << max_size << '\n';
         std::string link = links.pop();
         if (link == ""){
-            continue;
+            break;
         }
 
         std::string linksFound = crawl_website(link);
-
         std::string currLink = "";
 
         for ( int i = 0; i < linksFound.length(); i++ ){
@@ -102,7 +101,8 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
             else {
                 if (currLink != ""){
                     std::string fullLink = readLink(link, currLink);
-                    if ( LinkDirectory.add(fullLink) )
+                    bool added = LinkDirectory.add(fullLink);
+                    if ( added )
                         links.push(fullLink);
                 }
                 currLink = "";
@@ -110,24 +110,34 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
         }
 
         links.decrementLinks();
-
+        std::cout << "we reached here\n";
+        LinkDirectory.print();
     }
-
+    
+    std::cout << "done!\n";
 }
 
-int main(){
-
+int main(int argc, char *argv[]){
+    if( argc != 3 ) {
+        std::cout << "usage: './main [url] [max_size]'\n";
+        return 1;
+    }
     SetList LinkDirectory;
     SafeUnboundedQueue<std::string> links;
-    std::string firstLink = "https://www.wikipedia.org";
+    std::string firstLink = argv[1];
+    if ( firstLink.find("https://")  == std::string::npos )
+        firstLink = "https://" + firstLink;
+
+
+    int max_size = atoi(argv[2]);
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
 
-    int num_threads = 4;
+    int num_threads = 3;
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
-        workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links));
+        workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size));
     }
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
@@ -135,4 +145,5 @@ int main(){
 
     LinkDirectory.print();
 
+    return 0;
 }

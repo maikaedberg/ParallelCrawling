@@ -16,7 +16,7 @@ class SafeUnboundedQueue {
         std::queue<E> elements;
         std::mutex lock;
         int count_links = 0;
-        std::condition_variable not_empty;
+        std::condition_variable not_empty_or_done;
 
         // either a counter of 
         /// active threads
@@ -36,16 +36,16 @@ void SafeUnboundedQueue<E>::push(const E& element) {
     std::unique_lock<std::mutex> lk(lock);
     bool wasEmpty = elements.empty();
     elements.push(element);
-    if (wasEmpty)
-        not_empty.notify_all();
+    if ( wasEmpty )
+        not_empty_or_done.notify_all();
 }
 
 template <class E> 
 E SafeUnboundedQueue<E>::pop() {
     std::unique_lock<std::mutex> lk(lock);
-    while (elements.empty() && (! work_ended()))
-        not_empty.wait(lk);
-    if (work_ended())
+    while ( elements.empty() && count_links > 0  ) 
+        not_empty_or_done.wait(lk);
+    if ( elements.empty() )
         return E();
     E element = elements.front();
     elements.pop();
@@ -63,5 +63,7 @@ template <class E>
 void SafeUnboundedQueue<E>::decrementLinks() {
     std::unique_lock<std::mutex> lk(lock);
     count_links--;
+    if ( elements.empty() and count_links == 0)
+        not_empty_or_done.notify_all();
 }
 
