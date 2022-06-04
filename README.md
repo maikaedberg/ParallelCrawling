@@ -6,10 +6,12 @@ First, install curl with
 ```
 $ brew install curl
 ```
-(more info here https://formulae.brew.sh/formula/curl)
+You can find more info [here](https://formulae.brew.sh/formula/curl).
 
-Then download this code, and finally run.
+
+Download this code, and run
 ```
 $ make main & ./main [url] [num_threads] [max_size]
 ```
 The directory bounded at max_Size of your url should be printed!
+
