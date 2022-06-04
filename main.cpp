@@ -9,36 +9,25 @@
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
-std::string filefromlink( std::string link){
-    std::string file = link + ".links";
-    std::string chars = "/;'";
-    for (char c: chars) {
-        file.erase(std::remove(file.begin(), file.end(), c), file.end());
-    }
-    return file;
-}
-
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
-    //fwrite(ptr, size, nmemb, stdout);
-    size_t written = 0;
-    bool towrite = false;
-    char tofind[] = {'h', 'r', 'e', 'f', '=', '"'} ;
+    // in this function, 
+    // we take the ptr that points to where the file is written
+    // replacing by blank space any of the parts of the file which is not a link
+    // that is, only keeping 'link' where link is enclosed in href="{link}"
 
+    bool towrite = false;
+    char tofind[] = "href=\"";
     int ind = 0;
 
     for (int i = 0; i < nmemb; i++){
         char* curr = (char*)ptr + i*size;
         if (towrite){
             if (*curr == '"') {
-                written+= fwrite("\n", size, 1, (FILE*) stream);
+                *curr = ' ';
                 towrite = false;
-            }
-            else{
-                written+= fwrite(curr, size, 1, (FILE*) stream);
             }
         }
         else{
-            written += sizeof(char);
             if (*curr == tofind[ind]){
                 ind++;
             }
@@ -48,77 +37,76 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
             if (ind == 6){
                 towrite = true; ind = 0;
             }
+            *curr = ' ';
         }
     }
-    return written;
+
+    ((std::string*)stream)->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+
 }
 
-void crawl_website(std::string link){
+std::string crawl_website(std::string link){
+
     CURL *curl_handle;
-    FILE *pagefile;
+
     curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
- 
+
     curl_easy_setopt(curl_handle, CURLOPT_URL, link.c_str());
     //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+    
+    // writes to linksFound the new blanked out source files
+    std::string linksFound;
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &linksFound);
+    curl_easy_perform(curl_handle);
 
-    std::string file = filefromlink(link);
-    
-    const char *pagefilename = file.c_str();
-    pagefile = fopen(pagefilename, "wb");
-    if (pagefile) {
-        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
-        curl_easy_perform(curl_handle);
-        fclose(pagefile);
-    }
-    else{
-        std::cout << "something went wrong with creating " << pagefilename << '\n';
-        exit(1);
-    }
- 
     curl_easy_cleanup(curl_handle);
-    
     curl_global_cleanup();
+
+    return linksFound;
  
 }
 
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
-
-    while ( true ){ // there is still some links to treat
+    while ( ! links.work_ended() && LinkDirectory.size() < 10000 ){ // there is still some links to treat
         std::string link = links.pop();
-        crawl_website(link);
+        std::cout << "currently treating " << link << '\n';
+        links.incrementLinks();
+        std::string linksFound = crawl_website(link);
 
-        std::string file = filefromlink(link);  
+        std::string currLink = "";
 
-        std::string line;
-        std::ifstream input_file(file);
-        
-        if ( input_file.is_open() ) {
-            while ( getline(input_file, line) ){
-                if ( line.substr(0,8) == "https://" ){
-                    //std::cout << line << '\n';
-                    bool added = LinkDirectory.add(line);
-                    std::cout << line << '\n';
-                    if ( added ){
-                        links.push( line );
+        for ( int i = 0; i < linksFound.length(); i++ ){
+            if ( linksFound[i] != ' ' && linksFound[i] != '\n'){
+                currLink += linksFound[i];
+            }
+            else {
+                if (currLink != ""){
+                    if ( currLink.substr(0,8) == "https://" ){ // external
+                        if ( LinkDirectory.add(currLink) )
+                            links.push(currLink);
+                    }
+                    else {
+                        if ( LinkDirectory.add(link + currLink) ) // internal link
+                            links.push(link + currLink);
                     }
                 }
+                currLink = "";
             }
-            remove( file.c_str() );
         }
-        else{
-            std::cout << "something went wrong with finding " << file << '\n';
-            exit(1);
-        }
+        links.decrementLinks();
     }
 }
 
 int main(){
+    std::cout << "hi\n";
     SetList LinkDirectory;
     SafeUnboundedQueue<std::string> links;
-    std::string firstLink = "https://www.beachbunnymusic.com/";
+    std::string firstLink = "https://www.wikipedia.org/";
+
     links.push(firstLink);
     LinkDirectory.add(firstLink);
 
@@ -130,7 +118,6 @@ int main(){
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
     }
-
 
     LinkDirectory.print();
 
