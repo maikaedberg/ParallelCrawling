@@ -109,14 +109,13 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
         }
 
         links.decrementLinks();
-        LinkDirectory.print();
     }
 
 }
 
 int main(int argc, char *argv[]){
-    if( argc != 3 ) {
-        std::cout << "usage: './main [url] [max_size]'\n";
+    if( argc != 4 ) {
+        std::cout << "usage: './main [url] [num_threads] [max_size]'\n";
         return 1;
     }
     SetList LinkDirectory;
@@ -124,14 +123,12 @@ int main(int argc, char *argv[]){
     std::string firstLink = argv[1];
     if ( firstLink.find("https://")  == std::string::npos )
         firstLink = "https://" + firstLink;
-
-
-    int max_size = atoi(argv[2]);
+    int num_threads = atoi(argv[2]);
+    int max_size = atoi(argv[3]);
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
 
-    int num_threads = 3;
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size));
