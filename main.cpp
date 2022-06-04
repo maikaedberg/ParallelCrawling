@@ -60,7 +60,13 @@ std::string crawl_website(std::string link){
     // writes to linksFound the new blanked out source files
     std::string linksFound;
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &linksFound);
-    curl_easy_perform(curl_handle);
+
+    CURLcode res;
+    res = curl_easy_perform(curl_handle);
+    if (res != CURLE_OK){
+        std::cout << "an error occured, " << link << " is not a valid link" << std::endl;
+        exit(1);
+    }
 
     curl_easy_cleanup(curl_handle);
     curl_global_cleanup();
@@ -69,12 +75,22 @@ std::string crawl_website(std::string link){
  
 }
 
+std::string readLink(std::string firstLink, std::string link){
+    if ( link.find("https://")  != std::string::npos ){
+        return link;
+    }
+    return firstLink + link;
+}
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
-    while ( ! links.work_ended() && LinkDirectory.size() < 10000 ){ // there is still some links to treat
+
+    while ( ! links.work_ended() && LinkDirectory.size() < 1000 ){ // there is still some links to treat
+    
         std::string link = links.pop();
-        std::cout << "currently treating " << link << '\n';
-        links.incrementLinks();
+        if (link == ""){
+            continue;
+        }
+
         std::string linksFound = crawl_website(link);
 
         std::string currLink = "";
@@ -85,27 +101,25 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links){
             }
             else {
                 if (currLink != ""){
-                    if ( currLink.substr(0,8) == "https://" ){ // external
-                        if ( LinkDirectory.add(currLink) )
-                            links.push(currLink);
-                    }
-                    else {
-                        if ( LinkDirectory.add(link + currLink) ) // internal link
-                            links.push(link + currLink);
-                    }
+                    std::string fullLink = readLink(link, currLink);
+                    if ( LinkDirectory.add(fullLink) )
+                        links.push(fullLink);
                 }
                 currLink = "";
             }
         }
+
         links.decrementLinks();
+
     }
+
 }
 
 int main(){
-    std::cout << "hi\n";
+
     SetList LinkDirectory;
     SafeUnboundedQueue<std::string> links;
-    std::string firstLink = "https://www.wikipedia.org/";
+    std::string firstLink = "https://www.wikipedia.org";
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);

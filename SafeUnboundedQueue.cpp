@@ -49,6 +49,7 @@ E SafeUnboundedQueue<E>::pop() {
         return E();
     E element = elements.front();
     elements.pop();
+    count_links++;
     return element;
 }
 
