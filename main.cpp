@@ -85,7 +85,6 @@ std::string readLink(std::string firstLink, std::string link){
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size){
 
     while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
-        //std::cout << LinkDirectory.size() << " " << max_size << '\n';
         std::string link = links.pop();
         if (link == ""){
             break;
@@ -110,11 +109,9 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
         }
 
         links.decrementLinks();
-        std::cout << "we reached here\n";
         LinkDirectory.print();
     }
-    
-    std::cout << "done!\n";
+
 }
 
 int main(int argc, char *argv[]){
