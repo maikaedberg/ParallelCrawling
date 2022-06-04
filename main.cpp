@@ -9,39 +9,38 @@
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
+
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     // in this function, 
     // we take the ptr that points to where the file is written
     // replacing by blank space any of the parts of the file which is not a link
-    // that is, only keeping 'link' where link is enclosed in href="{link}"
+    // that is, only keeping 'link' where link is enclosed in <a*href="{link}"*</a>
 
-    bool towrite = false;
-    char tofind[] = "href=\"";
-    int ind = 0;
+    std::string htmlfile((char *) ptr, size * nmemb);
+    std::string finallink = "";
 
-    for (int i = 0; i < nmemb; i++){
-        char* curr = (char*)ptr + i*size;
-        if (towrite){
-            if (*curr == '"') {
-                *curr = ' ';
-                towrite = false;
-            }
-        }
-        else{
-            if (*curr == tofind[ind]){
-                ind++;
-            }
-            else{
-                ind = 0;
-            }
-            if (ind == 6){
-                towrite = true; ind = 0;
-            }
-            *curr = ' ';
-        }
+    while (true){
+
+        size_t begin_link = htmlfile.find("<a");
+        if ( begin_link == std::string::npos )
+            break;
+        size_t end_link = htmlfile.find("</a>", begin_link+2);
+        if (end_link == std::string::npos)
+            break;
+        std::string link_str = htmlfile.substr(begin_link + 2, end_link - begin_link - 2);
+
+        size_t begin_ref = link_str.find("href=\"");
+        if ( begin_ref == std::string::npos )
+            break;
+        size_t end_ref = link_str.find('"', begin_ref + 6);
+        if ( end_ref == std::string::npos )
+            break;
+        finallink += ( link_str.substr(begin_ref + 6, end_ref - begin_ref - 6) + '\n' );
+        
+        htmlfile = htmlfile.substr(end_link + 4);
     }
 
-    ((std::string*)stream)->append((char*)ptr, size * nmemb);
+    ((std::string*)stream)->append(finallink);
     return size * nmemb;
 
 }
@@ -76,39 +75,42 @@ std::string crawl_website(std::string link){
 }
 
 std::string readLink(std::string firstLink, std::string link){
-    if ( link.find("https://")  != std::string::npos ){
-        return link;
+    if ( link.find("https://")  == std::string::npos ){
+        return "https:" + link;
     }
-    return firstLink + link;
+    return link;
 }
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size){
 
     while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
-        std::string link = links.pop();
-        if (link == ""){
+
+        std::string startlink = links.pop();
+
+        if (startlink == ""){
             break;
         }
 
-        std::string linksFound = crawl_website(link);
+        std::string linksFound = crawl_website(startlink);
         std::string currLink = "";
 
         for ( int i = 0; i < linksFound.length(); i++ ){
-            if ( linksFound[i] != ' ' && linksFound[i] != '\n'){
-                currLink += linksFound[i];
-            }
-            else {
-                if (currLink != ""){
-                    std::string fullLink = readLink(link, currLink);
-                    bool added = LinkDirectory.add(fullLink);
-                    if ( added )
-                        links.push(fullLink);
-                }
+
+            if ( linksFound[i] == '\n'){
+                std::string fullLink = readLink(startlink, currLink);
+                std::cout << fullLink;
+                std::cout << '\n';
+                if ( LinkDirectory.add(fullLink))
+                    links.push(fullLink);
                 currLink = "";
+            }
+            else{
+                currLink += linksFound[i];
             }
         }
 
         links.decrementLinks();
+
     }
 
 }
@@ -137,7 +139,7 @@ int main(int argc, char *argv[]){
         workers[i].join();
     }
 
-    LinkDirectory.print();
+    //LinkDirectory.print();
 
     return 0;
 }
