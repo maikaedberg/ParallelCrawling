@@ -48,13 +48,19 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
 std::string crawl_website(std::string link){
 
     CURL *curl_handle;
+    CURL *curl_share;
 
     curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
+    //curl_share = curl_share_init();
 
     curl_easy_setopt(curl_handle, CURLOPT_URL, link.c_str());
     //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+
+    curl_share = curl_share_init();
+    curl_share_setopt(curl_share, CURLSHOPT_LOCKFUNC, CURL_LOCK_DATA_CONNECT);
+    curl_share_setopt(curl_share, CURLSHOPT_UNLOCKFUNC, CURL_LOCK_DATA_CONNECT);
     
     // writes to linksFound the new blanked out source files
     std::string linksFound;
@@ -63,7 +69,7 @@ std::string crawl_website(std::string link){
     CURLcode res;
     res = curl_easy_perform(curl_handle);
     if (res != CURLE_OK){
-        std::cout << "an error occured, " << link << " is not a valid link" << std::endl;
+        std::cout << "an error occured, code " << res << " for " << link << std::endl;
         exit(1);
     }
 
@@ -75,8 +81,15 @@ std::string crawl_website(std::string link){
 }
 
 std::string readLink(std::string firstLink, std::string link){
-    if ( link.find("https://")  == std::string::npos ){
-        return "https:" + link;
+    if ( link.find("https://")  == std::string::npos &&  link.find("http://")  == std::string::npos ){
+        if (link.length() > 2){
+            if ( ( link[0] == '/' ) && ( link[1] == '/' ) ){
+                return "https:" + link;
+            }
+            return firstLink + link;
+        }
+        else
+            return "";
     }
     return link;
 }
@@ -90,6 +103,7 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
         if (startlink == ""){
             break;
         }
+        //std::cout << startlink << '\n';
 
         std::string linksFound = crawl_website(startlink);
         std::string currLink = "";
@@ -98,10 +112,11 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
-                std::cout << fullLink;
-                std::cout << '\n';
+                //std::cout << fullLink;
+                //std::cout << '\n';
                 if ( LinkDirectory.add(fullLink))
                     links.push(fullLink);
+                //std::cout << "hi";
                 currLink = "";
             }
             else{
@@ -124,7 +139,7 @@ int main(int argc, char *argv[]){
     SafeUnboundedQueue<std::string> links;
     std::string firstLink = argv[1];
     if ( firstLink.find("https://")  == std::string::npos )
-        firstLink = "https://" + firstLink;
+        firstLink = "http://" + firstLink;
     int num_threads = atoi(argv[2]);
     int max_size = atoi(argv[3]);
 
@@ -139,7 +154,7 @@ int main(int argc, char *argv[]){
         workers[i].join();
     }
 
-    //LinkDirectory.print();
+    LinkDirectory.print();
 
     return 0;
 }
