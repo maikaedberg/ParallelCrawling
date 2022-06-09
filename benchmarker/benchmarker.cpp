@@ -6,8 +6,8 @@
 
 #include <curl/curl.h>
 
-#include "SetList.cpp"
-#include "SafeUnboundedQueue.cpp"
+#include "../SetList.cpp"
+#include "../SafeUnboundedQueue.cpp"
 
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
@@ -50,7 +50,6 @@ std::string crawl_website(std::string link){
     CURL *curl_handle;
     CURL *curl_share;
 
-    curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
     //curl_share = curl_share_init();
 
@@ -74,7 +73,6 @@ std::string crawl_website(std::string link){
     }
 
     curl_easy_cleanup(curl_handle);
-    curl_global_cleanup();
 
     return linksFound;
  
@@ -97,13 +95,12 @@ std::string readLink(std::string firstLink, std::string link){
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size){
 
     while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
-
+        //std::cout << LinkDirectory.size() << '\n';
         std::string startlink = links.pop();
 
         if (startlink == ""){
             break;
         }
-        //std::cout << startlink << '\n';
 
         std::string linksFound = crawl_website(startlink);
         std::string currLink = "";
@@ -112,11 +109,8 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
-                //std::cout << fullLink;
-                //std::cout << '\n';
                 if ( LinkDirectory.add(fullLink))
                     links.push(fullLink);
-                //std::cout << "hi";
                 currLink = "";
             }
             else{
@@ -130,18 +124,17 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
 }
 
-int main(int argc, char *argv[]){
-    if( argc != 4 ) {
-        std::cout << "usage: './main [url] [num_threads] [max_size]'\n";
-        return 1;
-    }
-    SetList LinkDirectory;
-    SafeUnboundedQueue<std::string> links;
-    std::string firstLink = argv[1];
+void insert_multithread(
+
+
+    std::string firstLink, 
+    int num_threads, 
+    int max_size, 
+    SetList& LinkDirectory,
+    SafeUnboundedQueue<std::string>& links){
+
     if ( firstLink.find("https://")  == std::string::npos )
         firstLink = "http://" + firstLink;
-    int num_threads = atoi(argv[2]);
-    int max_size = atoi(argv[3]);
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
@@ -154,7 +147,35 @@ int main(int argc, char *argv[]){
         workers[i].join();
     }
 
-    LinkDirectory.print();
+}
+
+int main(int argc, char *argv[]){
+
+    if( argc != 5 ) {
+        std::cout << "usage: './main [url] [num_threads] [max_size] [n_iter] \n";
+        return 1;
+    }
+
+    SetList LinkDirectory;
+    SafeUnboundedQueue<std::string> links;
+
+    std::string firstLink = argv[1];
+    int num_threads = atoi(argv[2]);
+    int max_size = atoi(argv[3]);
+    int n_iter = atoi(argv[4]);
+
+    curl_global_init(CURL_GLOBAL_ALL);
+    
+    auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < n_iter; i++){
+        int curr = (i + 1)*(max_size / n_iter);
+        insert_multithread(firstLink, num_threads, curr, LinkDirectory, links);
+        auto finish = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+        std::cout << curr << ' ' << elapsed << '\n';
+    }
+
+    curl_global_cleanup();
 
     return 0;
 }
