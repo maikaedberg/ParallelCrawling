@@ -137,7 +137,9 @@ void insert_multithread(
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
-
+    
+    curl_global_init(CURL_GLOBAL_ALL);
+    
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size));
@@ -145,6 +147,9 @@ void insert_multithread(
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
     }
+    
+    curl_global_cleanup();
+
 
 }
 
