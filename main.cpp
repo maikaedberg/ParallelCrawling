@@ -50,7 +50,6 @@ std::string crawl_website(std::string link){
     CURL *curl_handle;
     CURL *curl_share;
 
-    curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
     //curl_share = curl_share_init();
 
@@ -74,7 +73,6 @@ std::string crawl_website(std::string link){
     }
 
     curl_easy_cleanup(curl_handle);
-    curl_global_cleanup();
 
     return linksFound;
  
@@ -145,7 +143,9 @@ int main(int argc, char *argv[]){
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
-
+    
+    curl_global_init(CURL_GLOBAL_ALL);
+    
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size));
@@ -153,6 +153,9 @@ int main(int argc, char *argv[]){
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
     }
+    
+    curl_global_cleanup();
+
 
     LinkDirectory.print();
 
