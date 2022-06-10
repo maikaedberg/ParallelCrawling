@@ -1,15 +1,15 @@
 CXX = g++
 CFLAGS = -pthread -std=c++17 -Wall
 
-SOURCES = crawler.cpp ../SetList.cpp ../SafeUnboundedQueue.cpp
-OBJECTS = crawler.o
+SOURCES = ../crawler.cpp ../SetList.cpp ../SafeUnboundedQueue.cpp main.cpp
+OBJECTS = main.o
 
-crawler: $(OBJECTS)
-	$(CXX) $(CFLAGS) -o crawler $(OBJECTS) -lcurl
+main: $(OBJECTS)
+	$(CXX) $(CFLAGS) -o main $(OBJECTS) -lcurl
 
-crawler.o: crawler.cpp
-	$(CXX) -c $(CFLAGS) -o crawler.o crawler.cpp 
+main.o: main.cpp
+	$(CXX) -c $(CFLAGS) -o main.o main.cpp 
 
 clean:
 	rm -f *.o
-	rm -f crawler
+	rm -f main

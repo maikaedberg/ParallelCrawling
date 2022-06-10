@@ -1,7 +1,7 @@
 CXX = g++
 CFLAGS = -pthread -std=c++17 -Wall
 
-SOURCES = benchmarker.cpp ../SetList.cpp ../SafeUnboundedQueue.cpp
+SOURCES = ../crawler.cpp ../SetList.cpp ../SafeUnboundedQueue.cpp benchmarker.cpp
 OBJECTS = benchmarker.o
 
 benchmarker: $(OBJECTS)
