@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include <curl/curl.h>
-
 #include "crawler.cpp"
 
 int main(int argc, char *argv[]){
@@ -22,7 +21,6 @@ int main(int argc, char *argv[]){
     int num_threads = atoi(argv[2]);
     int max_size = atoi(argv[3]);
     bool to_study = (argc == 5);
-
 
     curl_global_init(CURL_GLOBAL_ALL);
     

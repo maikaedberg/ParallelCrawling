@@ -40,8 +40,8 @@ protected:
     // returns the pointer to the last node with key < hash(val)
     // with keeping this and the next nodes locked
     Node* search(const std::string& val) const;
-public:
     std::mutex count_lock;
+public:
     int count = 0;
     SetList() {
         this->head = new Node(SetList::LOWEST_KEY);

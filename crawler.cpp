@@ -122,14 +122,12 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
-                cv_m.lock();
                 if ( LinkDirectory.add(fullLink)){
                     if (LinkDirectory.count >= max_size){
                         cv.notify_all();
                     }
                     links.push(fullLink);
                 }
-                cv_m.unlock();
                 currLink = "";
             }
             else{
