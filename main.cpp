@@ -30,6 +30,7 @@ int main(int argc, char *argv[]){
     insert_multithread(firstLink, num_threads, max_size, LinkDirectory, links, to_study);
 
     curl_global_cleanup();
+    
     if (! to_study )
         LinkDirectory.print();
 

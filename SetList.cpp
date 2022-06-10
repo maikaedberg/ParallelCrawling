@@ -131,4 +131,3 @@ void SetList::print() const {
     }
     std::cout << std::endl;
 }
-
