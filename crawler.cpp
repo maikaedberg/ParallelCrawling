@@ -4,12 +4,15 @@
 #include <queue>
 #include <algorithm>
 #include <cstdio>
+#include <condition_variable>
 
 #include <curl/curl.h>
 
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
+std::condition_variable cv;
+std::mutex cv_m;
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     // in this function, 
@@ -98,7 +101,7 @@ std::string readLink(std::string firstLink, std::string link){
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
 
-    while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
+    while ( true ) { // there is still some links to treat
 
         auto start = std::chrono::steady_clock::now();
 
@@ -119,8 +122,14 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
-                if ( LinkDirectory.add(fullLink))
+                cv_m.lock();
+                if ( LinkDirectory.add(fullLink)){
+                    if (LinkDirectory.count >= max_size){
+                        cv.notify_all();
+                    }
                     links.push(fullLink);
+                }
+                cv_m.unlock();
                 currLink = "";
             }
             else{
@@ -160,8 +169,11 @@ void insert_multithread(
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
     }
     for (int i = 0; i < num_threads; i++){
-        workers[i].join();
+        workers[i].detach();
     }
+
+    std::unique_lock<std::mutex> lk(cv_m);
+    cv.wait(lk);
     
     curl_global_cleanup();
 

@@ -41,6 +41,8 @@ protected:
     // with keeping this and the next nodes locked
     Node* search(const std::string& val) const;
 public:
+    std::mutex count_lock;
+    int count = 0;
     SetList() {
         this->head = new Node(SetList::LOWEST_KEY);
         this->head->next = new Node(SetList::LARGEST_KEY);
@@ -94,6 +96,9 @@ bool SetList::add(const std::string& val) {
         Node* node = new Node(val);
         node->next = curr;
         pred->next = node;
+        count_lock.lock();
+        count++;
+        count_lock.unlock();
     }
     pred->lock.unlock();
     curr->lock.unlock();

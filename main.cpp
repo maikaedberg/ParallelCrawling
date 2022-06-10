@@ -8,7 +8,6 @@
 
 #include "crawler.cpp"
 
-
 int main(int argc, char *argv[]){
 
     if ( ( argc != 4 ) && ( argc != 5 ) ) {

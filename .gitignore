@@ -5,3 +5,4 @@ benchmarker/benchmarker.o
 benchmarker/benchmarker
 
 .vscode/
+.DS_Store
