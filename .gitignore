@@ -1,4 +1,7 @@
-main.o
-main
+crawler/crawler.o
+crawler/crawler
+
+benchmarker/benchmarker.o
+benchmarker/benchmarker
 
 .vscode/

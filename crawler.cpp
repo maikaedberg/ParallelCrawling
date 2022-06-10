@@ -4,15 +4,12 @@
 #include <queue>
 #include <algorithm>
 #include <cstdio>
-#include <condition_variable>
 
 #include <curl/curl.h>
 
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
-std::condition_variable cv;
-std::mutex lock;
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     // in this function, 
@@ -101,7 +98,7 @@ std::string readLink(std::string firstLink, std::string link){
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
 
-    while ( true ) { // there is still some links to treat
+    while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
 
         auto start = std::chrono::steady_clock::now();
 
@@ -123,10 +120,6 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
                 if ( LinkDirectory.add(fullLink))
-                    std::lock_guard<std::mutex> lk(lock);
-                    if ( LinkDirectory.size() >= max_size ){
-                        cv.notify_all();
-                    }
                     links.push(fullLink);
                 currLink = "";
             }
@@ -154,23 +147,24 @@ void insert_multithread(
     SafeUnboundedQueue<std::string>& links,
     bool verbose){
 
-
     if ( firstLink.find("https://")  == std::string::npos )
         firstLink = "http://" + firstLink;
 
     links.push(firstLink);
     LinkDirectory.add(firstLink);
     
+    curl_global_init(CURL_GLOBAL_ALL);
+    
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
     }
     for (int i = 0; i < num_threads; i++){
-        workers[i].detach();
+        workers[i].join();
     }
+    
+    curl_global_cleanup();
 
-    std::unique_lock<std::mutex> lk(lock);
-    cv.wait(lk);
 
-    return;
 }
+
