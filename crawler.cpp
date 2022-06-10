@@ -3,6 +3,7 @@
 #include <string>
 #include <queue>
 #include <algorithm>
+#include <cstdio>
 
 #include <curl/curl.h>
 
@@ -54,6 +55,7 @@ std::string crawl_website(std::string link){
     //curl_share = curl_share_init();
 
     curl_easy_setopt(curl_handle, CURLOPT_URL, link.c_str());
+
     //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 
@@ -63,7 +65,9 @@ std::string crawl_website(std::string link){
     
     // writes to linksFound the new blanked out source files
     std::string linksFound;
+
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &linksFound);
+
 
     CURLcode res;
     res = curl_easy_perform(curl_handle);
@@ -92,17 +96,23 @@ std::string readLink(std::string firstLink, std::string link){
     return link;
 }
 
-void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size){
+void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
 
     while ( LinkDirectory.size() < max_size ) { // there is still some links to treat
-        //std::cout << LinkDirectory.size() << '\n';
+
+        auto start = std::chrono::steady_clock::now();
+
         std::string startlink = links.pop();
 
         if (startlink == ""){
             break;
         }
 
+        auto start_crawl = std::chrono::steady_clock::now();
         std::string linksFound = crawl_website(startlink);
+        auto finish_crawl = std::chrono::steady_clock::now();
+        auto elapsed_crawl = std::chrono::duration_cast<std::chrono::microseconds>(finish_crawl - start_crawl).count();
+            
         std::string currLink = "";
 
         for ( int i = 0; i < linksFound.length(); i++ ){
@@ -118,6 +128,10 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
             }
         }
 
+        auto finish = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+        if ( verbose )
+            printf("%zu %lli %lli\n", LinkDirectory.size(), elapsed, elapsed_crawl);
         links.decrementLinks();
 
     }
@@ -130,7 +144,8 @@ void insert_multithread(
     int num_threads, 
     int max_size, 
     SetList& LinkDirectory,
-    SafeUnboundedQueue<std::string>& links){
+    SafeUnboundedQueue<std::string>& links,
+    bool verbose){
 
     if ( firstLink.find("https://")  == std::string::npos )
         firstLink = "http://" + firstLink;
@@ -142,7 +157,7 @@ void insert_multithread(
     
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
-        workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size));
+        workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
     }
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
