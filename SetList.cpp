@@ -41,11 +41,13 @@ protected:
     // with keeping this and the next nodes locked
     Node* search(const std::string& val) const;
     std::mutex count_lock;
+    int bound;
 public:
     int count = 0;
-    SetList() {
+    SetList(int max_size) {
         this->head = new Node(SetList::LOWEST_KEY);
         this->head->next = new Node(SetList::LARGEST_KEY);
+        this->bound = max_size;
     }
     ~SetList();
     bool add(const std::string& val);
@@ -92,14 +94,14 @@ bool SetList::add(const std::string& val) {
 
     Node* curr = pred->next;
     bool exists = (curr->key == std::hash<std::string>{}(val));
-    if (!exists) {
+    count_lock.lock();
+    if ( !exists && count < bound) {
         Node* node = new Node(val);
         node->next = curr;
         pred->next = node;
-        count_lock.lock();
         count++;
-        count_lock.unlock();
     }
+    count_lock.unlock();
     pred->lock.unlock();
     curr->lock.unlock();
     return !exists;
@@ -136,4 +138,3 @@ void SetList::print() const {
     }
     std::cout << std::endl;
 }
-

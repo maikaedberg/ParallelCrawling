@@ -14,13 +14,13 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    SetList LinkDirectory;
-    SafeUnboundedQueue<std::string> links;
-
     std::string firstLink = argv[1];
     int num_threads = atoi(argv[2]);
     int max_size = atoi(argv[3]);
     bool to_study = (argc == 5);
+
+    SetList LinkDirectory(max_size);
+    SafeUnboundedQueue<std::string> links;
 
     curl_global_init(CURL_GLOBAL_ALL);
     

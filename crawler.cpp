@@ -4,7 +4,6 @@
 #include <queue>
 #include <algorithm>
 #include <cstdio>
-#include <condition_variable>
 
 #include <curl/curl.h>
 
@@ -101,7 +100,7 @@ std::string readLink(std::string firstLink, std::string link){
 
 void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
 
-    while ( true ) { // there is still some links to treat
+    while ( LinkDirectory.count < max_size ) { // there is still some links to treat
 
         auto start = std::chrono::steady_clock::now();
 
@@ -122,12 +121,8 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
             if ( linksFound[i] == '\n'){
                 std::string fullLink = readLink(startlink, currLink);
-                if ( LinkDirectory.add(fullLink)){
-                    if (LinkDirectory.count >= max_size){
-                        cv.notify_all();
-                    }
+                if ( LinkDirectory.add(fullLink) )
                     links.push(fullLink);
-                }
                 currLink = "";
             }
             else{
@@ -138,7 +133,7 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
         auto finish = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
         if ( verbose )
-            printf("%zu %lli %lli\n", LinkDirectory.size(), elapsed, elapsed_crawl);
+            printf("%zu %i %lli %lli\n", LinkDirectory.size(), LinkDirectory.count, elapsed, elapsed_crawl);
         links.decrementLinks();
 
     }
@@ -167,11 +162,9 @@ void insert_multithread(
         workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
     }
     for (int i = 0; i < num_threads; i++){
-        workers[i].detach();
+        workers[i].join();
     }
-
-    std::unique_lock<std::mutex> lk(cv_m);
-    cv.wait(lk);
+    
     
     curl_global_cleanup();
 
