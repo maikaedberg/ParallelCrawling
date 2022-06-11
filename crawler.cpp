@@ -124,7 +124,7 @@ void crawl( T& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_si
         auto finish = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
         if ( verbose )
-            printf("%zu %lli %lli\n", LinkDirectory.size(), elapsed, elapsed_crawl);
+            printf("%i %lli %lli\n", LinkDirectory.count, elapsed, elapsed_crawl);
         links.decrementLinks();
 
     }

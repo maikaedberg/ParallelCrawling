@@ -10,24 +10,40 @@
 #include <vector>
 #include <stdexcept>
 
-
 //-----------------------------------------------------------------------------
 
 class NodeBST {
 public:
     long key;
+    std::string str;
     std::mutex lock;
     NodeBST* left;
     NodeBST* right;
     NodeBST* parent;
-    NodeBST() {}
     NodeBST(long k) {
-        this->key = k;
+        this->str = "";
         this->left = NULL;
         this->right = NULL;
         this->parent = NULL;
+        this->key = k;
     }
+    NodeBST(std::string link) {
+        this->str = link;
+        this->left = NULL;
+        this->right = NULL;
+        this->parent = NULL;
+        this->key = std::hash<std::string>{}(link);
+    }
+    void print();
 };
+
+void NodeBST::print(){
+    std::cout << this->str << '\n';
+    if (this->left)
+        this->left->print();
+    if (this->right)
+        this->right->print();
+}
 
 class FineBST {
 protected:
@@ -41,16 +57,16 @@ protected:
     // are locked
     static void remove_node(NodeBST* n);
     std::mutex count_lock;
+    int bound;
 public:
     int count = 0;
-    FineBST() {
+    FineBST(int max_size) {
         this->root = new NodeBST(FineBST::LOWEST_KEY);
+        this->bound = max_size;
     }
     ~FineBST();
-    bool add(long k);
-    bool remove(long k);
-    bool contains(long k);
-    void print();
+    bool add(std::string link);
+    void print(){ root->print(); };
 };
 
 void DeleteTree(NodeBST* root) {
@@ -82,16 +98,8 @@ NodeBST* FineBST::search(NodeBST* root, long k) {
     return cur;
 }
 
-bool FineBST::contains(long k) {
-    NodeBST* node = FineBST::search(this->root, k);
-    if ( node->parent ){ node->parent->lock.unlock();}
-    bool exists = (node->key == k);
-    node->lock.unlock();
-    return exists;
-}
-
-bool FineBST::add(long k) {
-
+bool FineBST::add(std::string link) {
+    long k = std::hash<std::string>{}(link);
     NodeBST* curr = FineBST::search(this->root, k);
 
     if (curr->parent){
@@ -100,8 +108,9 @@ bool FineBST::add(long k) {
 
     bool exists = (curr->key == k);
 
-    if (! exists){
-        NodeBST* node = new NodeBST(k);
+    count_lock.lock();
+    if (! exists && count < bound){
+        NodeBST* node = new NodeBST(link);
         node->parent = curr;
         if (k < curr->key){
             curr->left = node;
@@ -109,8 +118,11 @@ bool FineBST::add(long k) {
         else{
             curr->right = node;
         }
+        count++;
     }
+    count_lock.unlock();
     curr->lock.unlock();
+    
 
     return !exists;
 }
