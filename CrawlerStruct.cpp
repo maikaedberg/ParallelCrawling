@@ -11,7 +11,7 @@ class HtmlLink {
 public:
     std::string url;
     //std::string firstlink;
-    bool isempty() { return url == ""; }
+    bool isempty() { return (url == ""); }
     HtmlLink() {
         this->url = "";
     }
@@ -22,7 +22,7 @@ public:
         std::string link = ( href ).substr(9, href.size() - 10);
         if ( link.find("https://")  == std::string::npos ){
             if ( ( link.substr(0,2) == "//" ) )
-                this->url = "https:" + url;
+                this->url = "https:" + link;
             else
                 this->url = firstLink.url + link;
         }
@@ -52,9 +52,12 @@ public:
     HtmlLink pop(){ return this->links->pop(); }
 
     bool add( HtmlLink linkstr){
-        if ( this->LinkDirectory->add(linkstr.url) ) {
-            this->links->push(linkstr.url);
-            return true;
+        std::string curr_url = linkstr.url;
+        if ( curr_url != "" ){
+            if ( this->LinkDirectory->add( curr_url ) ) {
+                this->links->push( curr_url );
+                return true;
+            }
         }
         return false;
     }
@@ -63,6 +66,7 @@ public:
     size_t size() { return LinkDirectory->count; }
     void decrementLinks() { links->decrementLinks(); }
 
+    void clear_quue() { return this->links->is_empty(); }
 };
 
 

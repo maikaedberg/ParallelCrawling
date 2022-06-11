@@ -109,7 +109,7 @@ bool FineBST::add(std::string link) {
     bool exists = (curr->key == k);
 
     count_lock.lock();
-    if (! exists && count < bound){
+    if ( ! exists && count < bound ){
         NodeBST* node = new NodeBST(link);
         node->parent = curr;
         if (k < curr->key){
@@ -124,5 +124,5 @@ bool FineBST::add(std::string link) {
     curr->lock.unlock();
     
 
-    return !exists;
+    return (! exists && count < bound) ;
 }

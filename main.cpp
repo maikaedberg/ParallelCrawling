@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     else{
         CrawlerStruct<SetList> myCrawler( firstlink, no_threads, max_size);
         insert_multithread(myCrawler, to_study, no_threads);
-        if (! to_study )
+        if (! to_study ) 
             myCrawler.print();
     }
 

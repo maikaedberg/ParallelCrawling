@@ -95,7 +95,7 @@ bool SetList::add(const std::string& val) {
     NodeSetList* curr = pred->next;
     bool exists = (curr->key == std::hash<std::string>{}(val));
     count_lock.lock();
-    if ( !exists && count < bound) {
+    if ( !exists && count < bound ) {
         NodeSetList* node = new NodeSetList(val);
         node->next = curr;
         pred->next = node;
@@ -104,7 +104,7 @@ bool SetList::add(const std::string& val) {
     count_lock.unlock();
     pred->lock.unlock();
     curr->lock.unlock();
-    return !exists;
+    return ( !exists && count < bound) ;
 }
 
 bool SetList::remove(const std::string& val) {
@@ -133,8 +133,8 @@ void SetList::print() const {
     NodeSetList* cur = this->head->next;
     while (cur->next != NULL) {
         std::cout << cur->item << "\n";
-
         cur = cur->next;
     }
     std::cout << std::endl;
 }
+

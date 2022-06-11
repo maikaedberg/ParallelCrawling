@@ -9,6 +9,7 @@
 #include <numeric>
 #include <thread>
 #include <queue>
+#include <cstring>
 
 
 template <class E> 
@@ -17,10 +18,7 @@ class SafeUnboundedQueue {
         std::mutex lock;
         int count_links = 0;
         std::condition_variable not_empty_or_done;
-
-        // either a counter of 
-        /// active threads
-        //  or counter of links that are currently being processed
+        
     public: 
         SafeUnboundedQueue<E>(){}
         void push(const E& element);
@@ -43,12 +41,12 @@ void SafeUnboundedQueue<E>::push(const E& element) {
 template <class E> 
 E SafeUnboundedQueue<E>::pop() {
     std::unique_lock<std::mutex> lk(lock);
-
     while ( elements.empty() && count_links > 0  ) 
         not_empty_or_done.wait(lk);
     if ( elements.empty() )
         return E();
     E element = elements.front();
+
     elements.pop();
     count_links++;
     return element;
