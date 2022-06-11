@@ -34,14 +34,15 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &links);
     auto start = std::chrono::system_clock::now();
     curl_easy_perform(curl_handle);
-    for (auto link : links){
-        myCrawler.add( HtmlLink( startlink, link) );
-    }
 
     auto finish = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 
     printf("%zu %lli\n", myCrawler.size(), elapsed);
+
+    for (auto link : links){
+        myCrawler.add( HtmlLink( startlink, link) );
+    }
 
     curl_easy_cleanup(curl_handle);
  
