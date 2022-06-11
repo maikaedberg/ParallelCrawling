@@ -1,8 +1,5 @@
-crawler/crawler.o
-crawler/crawler
-
-benchmarker/benchmarker.o
-benchmarker/benchmarker
+main 
+main.o
 
 .vscode/
 .DS_Store

@@ -4,46 +4,35 @@
 #include <queue>
 #include <algorithm>
 #include <cstdio>
-
+#include <regex>
 #include <curl/curl.h>
 
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
-std::condition_variable cv;
-std::mutex cv_m;
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
-    // in this function, 
-    // we take the ptr that points to where the file is written
-    // replacing by blank space any of the parts of the file which is not a link
-    // that is, only keeping 'link' where link is enclosed in <a*href="{link}"*</a>
+    // link: <a href="{link}"*
+    // https://www.w3schools.com/html/html_links.asp
 
     std::string htmlfile((char *) ptr, size * nmemb);
     std::string finallink = "";
 
-    while (true){
-
-        size_t begin_link = htmlfile.find("<a");
-        if ( begin_link == std::string::npos )
-            break;
-        size_t end_link = htmlfile.find("</a>", begin_link+2);
-        if (end_link == std::string::npos)
-            break;
-        std::string link_str = htmlfile.substr(begin_link + 2, end_link - begin_link - 2);
-
-        size_t begin_ref = link_str.find("href=\"");
-        if ( begin_ref == std::string::npos )
-            break;
-        size_t end_ref = link_str.find('"', begin_ref + 6);
-        if ( end_ref == std::string::npos )
-            break;
-        finallink += ( link_str.substr(begin_ref + 6, end_ref - begin_ref - 6) + '\n' );
-        
-        htmlfile = htmlfile.substr(end_link + 4);
+    std::regex regexp_atg("<a href=\"[^ \t\r\n\v\f]*\"");
+    std::smatch m; 
+    std::vector<std::string> atags;
+    
+    while(regex_search(htmlfile, m, regexp_atg)){ 
+        for (auto x : m){
+            std::string href = (std::string) x;
+            finallink += ( href ).substr(9, href.size() - 10);
+            finallink += '\n';
+        }
+        htmlfile = m.suffix() ;
     }
 
     ((std::string*)stream)->append(finallink);
+
     return size * nmemb;
 
 }
@@ -133,7 +122,7 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
         auto finish = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
         if ( verbose )
-            printf("%zu %i %lli %lli\n", LinkDirectory.size(), LinkDirectory.count, elapsed, elapsed_crawl);
+            printf("%zu %lli %lli\n", LinkDirectory.size(), elapsed, elapsed_crawl);
         links.decrementLinks();
 
     }
@@ -168,6 +157,4 @@ void insert_multithread(
     
     curl_global_cleanup();
 
-
 }
-
