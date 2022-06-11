@@ -1,6 +1,8 @@
 
 #include <string>
 #include <iostream>
+#include <regex>
+#include <curl/curl.h>
 #include "FineBST.cpp"
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
@@ -8,14 +10,12 @@
 class HtmlLink {
 public:
     std::string url;
-    std::string firstlink;
+    //std::string firstlink;
     bool isempty() { return url == ""; }
     HtmlLink() {
-        this->firstlink = "";
         this->url = "";
     }
     HtmlLink(std::string link) {
-        this->firstlink = "";
         this->url = link;
     }
     HtmlLink(HtmlLink firstLink, std::string href) {
@@ -27,28 +27,42 @@ public:
                 this->url = firstLink.url + link;
         }
     }
-
+    
 };
 
 template <typename T>
 class CrawlerStruct {
-
 protected:
-    T LinkDirectory;
-    SafeUnboundedQueue<HtmlLink> links;
-    std::string firstLink;
+    T* LinkDirectory;
+    SafeUnboundedQueue<HtmlLink>* links;
+    HtmlLink firstLink;
     int num_threads;
     int bound;
 
 public:
-    CrawlerStruct( std::string firstLink, int num_threads, int bound) {
+    CrawlerStruct( HtmlLink firstLink, int no_threads, int bound) {
         this->firstLink = firstLink;
-        this->num_threads = num_threads;
         this->bound = bound;
-        this->LinkDirectory = T(bound);
-        this->LinkDirectory.add(firstLink);
-        this->links.push(firstLink);
+        this->LinkDirectory = new T(bound);
+        this->links = new SafeUnboundedQueue<HtmlLink>;
+        this->LinkDirectory->add(firstLink.url);
+        this->links->push(firstLink.url);
     }
-    void print() { LinkDirectory.print(); }
+    void print() { LinkDirectory->print(); }
+    HtmlLink pop(){ return this->links->pop(); }
+
+    bool add( HtmlLink linkstr){
+        if ( this->LinkDirectory->add(linkstr.url) ) {
+            this->links->push(linkstr.url);
+            return true;
+        }
+        return false;
+    }
+
+    bool isFull() { return LinkDirectory->count == this->bound; }
+    size_t size() { return LinkDirectory->count; }
+    void decrementLinks() { links->decrementLinks(); }
 
 };
+
+

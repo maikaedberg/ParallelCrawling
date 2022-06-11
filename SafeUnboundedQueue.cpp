@@ -55,16 +55,9 @@ E SafeUnboundedQueue<E>::pop() {
 }
 
 template <class E> 
-void SafeUnboundedQueue<E>::incrementLinks() {
-    std::unique_lock<std::mutex> lk(lock);
-    count_links++;
-}
-
-template <class E> 
 void SafeUnboundedQueue<E>::decrementLinks() {
     std::unique_lock<std::mutex> lk(lock);
     count_links--;
     if ( elements.empty() and count_links == 0)
         not_empty_or_done.notify_all();
 }
-
