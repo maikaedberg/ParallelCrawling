@@ -1,5 +1,7 @@
 #include "CrawlerStruct.cpp"
+#include <tuple>
 
+template <typename T>
 size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     // link:= <a href="{link}"*
     
@@ -10,7 +12,11 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
     
     while(regex_search(htmlfile, m, regexp_atg)){ 
         for (auto x : m){
-            ((std::vector<std::string>*)stream)->push_back(x);
+            std::tuple<CrawlerStruct<T>, HtmlLink>* myInfo = (std::tuple<CrawlerStruct<T>, HtmlLink> *) stream ;
+            CrawlerStruct<T> myCrawler = std::get<0>(*myInfo);
+            HtmlLink firstLink = std::get<1>(*myInfo);
+            myCrawler.add( HtmlLink ( firstLink, x) );
+           // ((std::vector<std::string>*)stream)->push_back(x);
         }
         htmlfile = m.suffix() ;
     }
@@ -18,17 +24,17 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
 
 }
 
-
-std::vector<std::string> crawl_website(HtmlLink link){
+template <typename T>
+void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink link){
 
     CURL *curl_handle;
     curl_handle = curl_easy_init();
 
     curl_easy_setopt(curl_handle, CURLOPT_URL, link.url.c_str());
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &write_data);
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &write_data<T>);
 
-    std::vector<std::string> linksFound;
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &linksFound);
+    std::tuple<CrawlerStruct<T>, HtmlLink> myInfo = std::make_tuple(myCrawler, link);
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &myInfo);
 
     CURLcode res;
     res = curl_easy_perform(curl_handle);
@@ -38,8 +44,6 @@ std::vector<std::string> crawl_website(HtmlLink link){
     }
 
     curl_easy_cleanup(curl_handle);
-
-    return linksFound;
  
 }
 
@@ -52,12 +56,8 @@ void crawl(CrawlerStruct<T>& myCrawler, bool verbose){
         if (startLink.isempty()){
             break;
         }
-
-        std::vector<std::string> linksFound = crawl_website(startLink);
-       
-        for (auto i : linksFound){
-            myCrawler.add(HtmlLink(startLink, i));
-        }
+    
+        crawl_website<T>(myCrawler, startLink);
 
         myCrawler.decrementLinks();
 
