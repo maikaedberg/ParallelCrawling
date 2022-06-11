@@ -13,15 +13,15 @@
 
 //-----------------------------------------------------------------------------
 
-class Node {
+class NodeBST {
 public:
     long key;
     std::mutex lock;
-    Node* left;
-    Node* right;
-    Node* parent;
-    Node() {}
-    Node(long k) {
+    NodeBST* left;
+    NodeBST* right;
+    NodeBST* parent;
+    NodeBST() {}
+    NodeBST(long k) {
         this->key = k;
         this->left = NULL;
         this->right = NULL;
@@ -31,20 +31,20 @@ public:
 
 class FineBST {
 protected:
-    Node* root;
+    NodeBST* root;
     static const unsigned long LOWEST_KEY = LONG_MIN;
     // returns the node that contains k or a node that would be
     // a parent of k if it will be inserted
     // Note: after the execution the returned node and its parent should be locked
-    static Node* search(Node* root, long k);
+    static NodeBST* search(NodeBST* root, long k);
     // removes the given node. Works under the assumption that the node and its parent
     // are locked
-    static void remove_node(Node* n);
+    static void remove_node(NodeBST* n);
     std::mutex count_lock;
 public:
     int count = 0;
     FineBST() {
-        this->root = new Node(FineBST::LOWEST_KEY);
+        this->root = new NodeBST(FineBST::LOWEST_KEY);
     }
     ~FineBST();
     bool add(long k);
@@ -53,7 +53,7 @@ public:
     void print();
 };
 
-void DeleteTree(Node* root) {
+void DeleteTree(NodeBST* root) {
     std::lock_guard<std::mutex> lk(root->lock);
     if (root->left != NULL) {
         DeleteTree(root->left);
@@ -68,8 +68,8 @@ FineBST::~FineBST() {
     DeleteTree(this->root);
 }
 
-Node* FineBST::search(Node* root, long k) {
-    Node* cur = root;
+NodeBST* FineBST::search(NodeBST* root, long k) {
+    NodeBST* cur = root;
     cur->lock.lock();
     if (k > cur->key && cur->right != NULL) {
         if (cur->parent != NULL) { cur->parent->lock.unlock(); }
@@ -83,7 +83,7 @@ Node* FineBST::search(Node* root, long k) {
 }
 
 bool FineBST::contains(long k) {
-    Node* node = FineBST::search(this->root, k);
+    NodeBST* node = FineBST::search(this->root, k);
     if ( node->parent ){ node->parent->lock.unlock();}
     bool exists = (node->key == k);
     node->lock.unlock();
@@ -92,7 +92,7 @@ bool FineBST::contains(long k) {
 
 bool FineBST::add(long k) {
 
-    Node* curr = FineBST::search(this->root, k);
+    NodeBST* curr = FineBST::search(this->root, k);
 
     if (curr->parent){
         curr->parent->lock.unlock();
@@ -101,8 +101,7 @@ bool FineBST::add(long k) {
     bool exists = (curr->key == k);
 
     if (! exists){
-        count_lock.
-        Node* node = new Node(k);
+        NodeBST* node = new NodeBST(k);
         node->parent = curr;
         if (k < curr->key){
             curr->left = node;

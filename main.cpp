@@ -8,16 +8,23 @@
 #include "crawler.cpp"
 
 int main(int argc, char *argv[]){
-    
-    if ( ( argc != 4 ) && ( argc != 5 ) ) {
-        std::cout << "usage: './main [url] [num_threads] [max_size] -s'\n";
+
+    if ( ( argc != 5 ) && ( argc != 6 ) ) {
+        std::cout << "usage: './main [url] [num_threads] [max_size] [settype] -s'\n";
         return 1;
     }
 
     std::string firstLink = argv[1];
     int num_threads = atoi(argv[2]);
     int max_size = atoi(argv[3]);
-    bool to_study = (argc == 5);
+    if ((std::string) argv[4] == "FineBST"){
+        SetList LinkDirectory(max_size);
+    }
+    if ((std::string) argv[4] == "SetList"){
+        FineBST LinkDirectory;
+    }
+
+    bool to_study = (argc == 6);
 
     SetList LinkDirectory(max_size);
     SafeUnboundedQueue<std::string> links;

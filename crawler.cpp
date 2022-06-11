@@ -7,6 +7,7 @@
 #include <regex>
 #include <curl/curl.h>
 
+#include "FineBST.cpp"
 #include "SetList.cpp"
 #include "SafeUnboundedQueue.cpp"
 
@@ -87,7 +88,8 @@ std::string readLink(std::string firstLink, std::string link){
     return link;
 }
 
-void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
+template <typename T>
+void crawl( T& LinkDirectory, SafeUnboundedQueue<std::string>& links, int max_size, bool verbose){
 
     while ( LinkDirectory.count < max_size ) { // there is still some links to treat
 
@@ -129,12 +131,13 @@ void crawl( SetList& LinkDirectory, SafeUnboundedQueue<std::string>& links, int 
 
 }
 
+template <typename T>
 void insert_multithread(
 
     std::string firstLink, 
     int num_threads, 
     int max_size, 
-    SetList& LinkDirectory,
+    T& LinkDirectory,
     SafeUnboundedQueue<std::string>& links,
     bool verbose){
 
@@ -148,7 +151,7 @@ void insert_multithread(
     
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
-        workers[i] = std::thread(&crawl, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
+        workers[i] = std::thread(&crawl<T>, std::ref(LinkDirectory), std::ref(links), std::ref(max_size), verbose);
     }
     for (int i = 0; i < num_threads; i++){
         workers[i].join();
