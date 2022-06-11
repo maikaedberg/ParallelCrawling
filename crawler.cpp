@@ -34,7 +34,6 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
     curl_easy_setopt(curl_handle, CURLOPT_URL, startlink.url.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &write_data<T>);
 
-    //std::vector<std::string> links;
     std::tuple<CrawlerStruct<T>, HtmlLink> myInfo = std::make_tuple(myCrawler, startlink);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &myInfo);
     auto start = std::chrono::system_clock::now();
@@ -44,10 +43,6 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 
     printf("%zu %lli\n", myCrawler.size(), elapsed);
-
-    /*for (auto link : links){
-        myCrawler.add( HtmlLink( startlink, link) );
-    }*/
 
     curl_easy_cleanup(curl_handle);
  
