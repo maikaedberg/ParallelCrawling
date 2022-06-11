@@ -27,7 +27,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
 }
 
 template <typename T>
-void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
+void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink, bool verbose){
     CURL *curl_handle;
     curl_handle = curl_easy_init();
 
@@ -41,8 +41,8 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
 
     auto finish = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
-
-    printf("%zu %lli\n", myCrawler.size(), elapsed);
+    if ( verbose )
+        printf("%zu %lli\n", myCrawler.size(), elapsed);
 
     curl_easy_cleanup(curl_handle);
  
@@ -51,13 +51,13 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink){
 template <typename T>
 void crawl(CrawlerStruct<T>& myCrawler, bool verbose){
 
-    while ( ! myCrawler.isFull() ) { 
+    while ( ! myCrawler.isFull() ) {
 
         HtmlLink startLink = myCrawler.pop();
         if ( startLink.isempty() ){
             break;
         }
-        crawl_website<T>(myCrawler, startLink);
+        crawl_website<T>(myCrawler, startLink, verbose);
 
         myCrawler.decrementLinks();
 
@@ -69,7 +69,7 @@ template <typename T>
 void insert_multithread(CrawlerStruct<T>& myCrawler, bool verbose, int num_threads){
 
     curl_global_init(CURL_GLOBAL_ALL);
-    
+
     std::thread workers[num_threads];
     for (int i = 0; i < num_threads; i++){
         workers[i] = std::thread(&crawl<T>, std::ref(myCrawler), verbose);
