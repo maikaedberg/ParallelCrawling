@@ -1,7 +1,6 @@
 CXX = g++
 CFLAGS = -pthread -std=c++17 -Wall
 
-SOURCES = crawler.cpp SetList.cpp SafeUnboundedQueue.cpp main.cpp
 OBJECTS = main.o
 
 main: $(OBJECTS)
