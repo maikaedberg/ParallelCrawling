@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    std::string firstLink = argv[1];
+    HtmlLink firstLink = HtmlLink(argv[1]);
     int num_threads = atoi(argv[2]);
     int max_size = atoi(argv[3]);
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
 
     bool to_study = (argc == 6);
 
-    SafeUnboundedQueue<std::string> links;
+    SafeUnboundedQueue<HtmlLink> links;
 
     curl_global_init(CURL_GLOBAL_ALL);
 
