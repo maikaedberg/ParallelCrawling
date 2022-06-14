@@ -41,8 +41,8 @@ void crawl_website(CrawlerStruct<T> myCrawler, HtmlLink startlink, bool verbose)
 
     auto finish = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
-    if ( verbose )
-        printf("Crawler %zu %lli\n", myCrawler.size(), elapsed);
+
+    std::cout << "Crawler " << myCrawler.size() << " " << elapsed << std::endl;
 
     curl_easy_cleanup(curl_handle);
  
@@ -60,13 +60,12 @@ void crawl(CrawlerStruct<T>& myCrawler, bool verbose){
             break;
         }
         crawl_website<T>(myCrawler, startLink, verbose);
-
+        
         myCrawler.decrementLinks();
 
         auto finish = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
-        if ( verbose )
-            printf("Overall %zu %lli\n", myCrawler.size(), elapsed);
+        std::cout << "Overall " << myCrawler.size() << " " << elapsed << std::endl;
     }
 
 }

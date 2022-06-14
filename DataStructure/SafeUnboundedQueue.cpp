@@ -41,7 +41,7 @@ void SafeUnboundedQueue<E>::push(const E& element) {
 template <class E> 
 E SafeUnboundedQueue<E>::pop() {
     std::unique_lock<std::mutex> lk(lock);
-    while ( elements.empty() && count_links > 0  ) 
+    while ( elements.empty() && count_links > 1  ) 
         not_empty_or_done.wait(lk);
     if ( elements.empty() )
         return E();

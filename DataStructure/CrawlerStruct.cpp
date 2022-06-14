@@ -61,12 +61,13 @@ public:
         }
         return false;
     }
-
+    
     bool isFull() { return LinkDirectory->count == this->bound; }
     size_t size() { return LinkDirectory->count; }
     void decrementLinks() { links->decrementLinks(); }
 
     void clear_quue() { return this->links->is_empty(); }
+
 };
 
 
