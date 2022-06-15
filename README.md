@@ -8,9 +8,9 @@ $ brew install curl
 ```
 You can find more info [here](https://formulae.brew.sh/formula/curl).
 
-Download this code and if you want to crawl a specific website,  run
+Download this code and if you want to crawl a specific website,  run depending on whether you want to use FineBST or SetList,
 ```
-$ make main & ./main [url] [num_threads] [max_size]
+$ make main & ./main [url] [num_threads] [max_size] [FineBST | SetList]
 ```
 The directory bounded at max_size of your url should be printed!
 
